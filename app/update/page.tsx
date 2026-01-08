@@ -27,14 +27,15 @@ export default function page() {
     createOrUpdateUser(data)
       .then(({ success, message }) => {
         if (success) {
-          toast.success('Success', { description: message })
-          router.push('/');
+          toast.success('Success', { description: message });
+          setTimeout(() => router.push('/'), 3000);
+          return;
         }
 
         toast.error('Something went wrong...', { description: message });
       })
       .catch(() => {
-        toast.error('Something went wrong...', { description: 'An unkown exception occured when making the request.' })
+        toast.error('Something went wrong...', { description: 'An unkown exception occured when making the request.' });
       })
   }
 
