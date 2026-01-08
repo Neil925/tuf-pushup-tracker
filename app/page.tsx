@@ -1,9 +1,21 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Table, TableCaption, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { prisma } from "@/lib/prisma";
+import { useEffect, useState } from "react";
+import { getTableData } from "./action";
 
-export default async function Home() {
-  const users = await prisma.user.findMany({ select: { username: true, numberOfPushups: true }, orderBy: { numberOfPushups: 'desc' } });
+export default function Home() {
+  const [users, setUsers] = useState<{ username: string, numberOfPushups: number }[]>([]);
+
+  useEffect(() => {
+    getTableData().then((data) => setUsers(data))
+
+    setInterval(() => {
+      getTableData().then((data) => setUsers(data));
+      console.log('hit');
+    }, 3000);
+  }, [])
 
   return (
     <div className="w-full">

@@ -28,7 +28,7 @@ export default function page() {
       .then(({ success, message }) => {
         if (success) {
           toast.success('Success', { description: message });
-          setTimeout(() => router.push('/'), 3000);
+          setTimeout(() => router.push('/'), 2000);
           return;
         }
 
@@ -103,7 +103,7 @@ export default function page() {
               </FormItem>
             )}
           />
-          <Button type="submit">Submit</Button>
+          <Button type="submit" className="font-bold cursor-pointer">Submit</Button>
         </form>
       </Form>
       <Toaster />
