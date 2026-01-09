@@ -63,12 +63,18 @@ export async function getNumberOfPushups(user: z.infer<typeof formSchema>) {
 export async function deleteUser(user: z.infer<typeof formSchema>) {
   user = userCleanup(user);
 
-  const deletedUser = await prisma.user.delete({
+  const userToDelete = await prisma.user.findFirst({
     where: {
       username: user.username,
       password: user.password
     }
   });
+
+  if (!userToDelete || userToDelete.password && userToDelete.password !== user.password) {
+    return { success: false, message: 'Failed to delete user. Is your password correct?' };
+  }
+
+  await prisma.user.delete({ where: { username: user.username } });
 
   return { success: true, message: 'User deleted successfully!' };
 }

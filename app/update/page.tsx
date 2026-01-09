@@ -68,7 +68,8 @@ export default function page() {
           })
           .catch(() => {
             toast.error('Something went wrong...', { description: 'An unkown exception occured when making the request.' });
-          });
+          })
+          .finally(() => setAction('none'));
         break;
       case 'delete':
         setModalMessage('Are you sure you want to delete this account?');
@@ -89,7 +90,8 @@ export default function page() {
           })
           .catch(() => {
             toast.error('Something went wrong...', { description: 'An unkown exception occured when making the request.' });
-          });
+          })
+          .finally(() => setAction('none'));
         break;
       case 'none':
         return;
@@ -97,8 +99,6 @@ export default function page() {
         toast.error(`Recieved unkown action: ${action}`);
         break;
     }
-
-    setAction('none');
   }
 
   let getPushupsTimeout: NodeJS.Timeout | null = null;
