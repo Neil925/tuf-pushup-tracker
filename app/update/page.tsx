@@ -28,6 +28,7 @@ export default function page() {
   let [action, setAction] = useState('none');
   const [userFound, setUserFound] = useState(false);
   const [modalMessage, setModalMessage] = useState<string | null>(null);
+  const [openModal, setOpenModal] = useState(false);
 
   function submit(newAction: string) {
     return () => {
@@ -37,16 +38,19 @@ export default function page() {
       else {
         setAction(newAction);
       }
-
     }
   }
 
-  useEffect(() => { form.handleSubmit(onSubmit)() }, [action]);
+  useEffect(() => { if (action !== 'none') form.handleSubmit(onSubmit)() }, [action]);
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     switch (action) {
       case 'create':
         setModalMessage('An existing user was not found so this will create a new one. Is that what you want to do?');
+        setTimeout(() => setOpenModal(true), 100);
+        break;
+      case 'cancelled':
+        setOpenModal(false);
         break;
       case 'update':
       case 'confirm-create':
@@ -55,6 +59,7 @@ export default function page() {
             if (success) {
               toast.success('Success', { description: message });
               setModalMessage(null);
+              setOpenModal(false);
               setTimeout(() => router.push('/'), 2000);
               return;
             }
@@ -67,6 +72,7 @@ export default function page() {
         break;
       case 'delete':
         setModalMessage('Are you sure you want to delete this account?');
+        setTimeout(() => setOpenModal(true), 100);
         break;
       case 'confirm-delete':
         deleteUser(data)
@@ -74,6 +80,7 @@ export default function page() {
             if (success) {
               toast.success('Success', { description: message });
               setModalMessage(null);
+              setOpenModal(false);
               setTimeout(() => router.push('/'), 2000);
               return;
             }
@@ -84,10 +91,14 @@ export default function page() {
             toast.error('Something went wrong...', { description: 'An unkown exception occured when making the request.' });
           });
         break;
+      case 'none':
+        return;
       default:
         toast.error(`Recieved unkown action: ${action}`);
         break;
     }
+
+    setAction('none');
   }
 
   let getPushupsTimeout: NodeJS.Timeout | null = null;
@@ -128,7 +139,7 @@ export default function page() {
                 <FormLabel className="text-lg">Username*</FormLabel>
                 <FormControl className="">
                   <Input placeholder="Enter a name..." {...field} className="border-zinc-400"
-                    onKeyDown={() => getPushups()} />
+                    onKeyDown={getPushups} />
                 </FormControl>
                 <FormMessage />
                 {userFound &&
@@ -148,7 +159,7 @@ export default function page() {
                 <FormLabel className="text-lg">Password (optional)</FormLabel>
                 <FormControl className="">
                   <Input placeholder="" type="password" {...field} className="border-zinc-400"
-                    onKeyDown={() => getPushups()} />
+                    onKeyDown={getPushups} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -166,7 +177,7 @@ export default function page() {
                 <FormMessage />
                 {userFound &&
                   <FormDescription className="text-black">
-                    The last number you set was fetched for you. You can set a new one.
+                    The last number you set was retrieved. You can set a new one.
                   </FormDescription>
                 }
               </FormItem>
@@ -175,35 +186,35 @@ export default function page() {
           <div className="space-x-3">
             {
               userFound ?
-                <Button type="button" onClick={submit('update')}
+                <Button type="button" onClick={submit('update')} disabled={!form.formState.isValid}
                   className='font-bold cursor-pointer bg-blue-500'>Update</Button> :
-                <Button type="button" onClick={submit('create')}
+                <Button type="button" onClick={submit('create')} disabled={!form.formState.isValid}
                   className='font-bold cursor-pointer bg-green-500'>Create</Button>
             }
             {userFound &&
-              <Button type="button" onClick={submit('delete')}
+              <Button type="button" onClick={submit('delete')} disabled={!form.formState.isValid}
                 className="font-bold cursor-pointer bg-red-500">Delete</Button>
             }
           </div>
-          <Dialog open={modalMessage !== null}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Are you sure?</DialogTitle>
-                <DialogDescription>
-                  {modalMessage}
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline" className="cursor-pointer" onClick={() => setModalMessage(null)}>Cancel</Button>
-                </DialogClose>
-                <Button type="button" name="confirm" className="cursor-pointer" onClick={submit('confirm')}>Yes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </form>
       </Form>
       <Toaster />
+      <Dialog open={openModal} onOpenChange={(ev) => !ev && submit('cancelled')()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
+              {modalMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" className="cursor-pointer" onClick={submit('cancelled')}>Cancel</Button>
+            </DialogClose>
+            <Button type="button" name="confirm" className="cursor-pointer" onClick={submit('confirm')}>Yes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div >
   )
 }
