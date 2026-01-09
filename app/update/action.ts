@@ -6,7 +6,7 @@ import z from "zod/v3";
 import bcrypt from "bcryptjs";
 
 export async function createOrUpdateUser(user: z.infer<typeof formSchema>) {
-  user.password = user.password ? processPassword(user.password) : undefined;
+  user = userCleanup(user);
 
   const existingUser = await prisma.user.findFirst({
     where: {
@@ -49,7 +49,7 @@ export async function createOrUpdateUser(user: z.infer<typeof formSchema>) {
 }
 
 export async function getNumberOfPushups(user: z.infer<typeof formSchema>) {
-  user.password = user.password ? processPassword(user.password) : undefined;
+  user = userCleanup(user);
 
   return await prisma.user.findFirst({
     where: {
@@ -60,9 +60,29 @@ export async function getNumberOfPushups(user: z.infer<typeof formSchema>) {
   });
 }
 
+export async function deleteUser(user: z.infer<typeof formSchema>) {
+  user = userCleanup(user);
+
+  const deletedUser = await prisma.user.delete({
+    where: {
+      username: user.username,
+      password: user.password
+    }
+  });
+
+  return { success: true, message: 'User deleted successfully!' };
+}
+
 function processPassword(password: string): string {
   const salt = process.env.SALT?.replaceAll(' ', '$');
   const hash = bcrypt.hashSync(password, salt);
 
   return hash;
+}
+
+function userCleanup(user: z.infer<typeof formSchema>) {
+  user.password = user.password ? processPassword(user.password) : undefined;
+  user.username = user.username.trim();
+
+  return user;
 }

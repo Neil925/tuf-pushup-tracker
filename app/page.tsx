@@ -13,7 +13,6 @@ export default function Home() {
 
     setInterval(() => {
       getTableData().then((data) => setUsers(data));
-      console.log('hit');
     }, 3000);
   }, [])
 
