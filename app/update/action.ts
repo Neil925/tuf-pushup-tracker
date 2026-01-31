@@ -6,6 +6,10 @@ import z from "zod/v3";
 import bcrypt from "bcryptjs";
 
 export async function createOrUpdateUser(user: z.infer<typeof formSchema>) {
+  if (new Date(Date.now()) > new Date('2026-02-01T00:00:00-05:00')) {
+    return { success: false, message: 'Challange is over but keep up the training! Someone let me know if we want to keep this around or repurpose it for the future though! - Neil' };
+  }
+
   user = userCleanup(user);
 
   const existingUser = await prisma.user.findFirst({

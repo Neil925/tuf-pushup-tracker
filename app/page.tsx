@@ -11,10 +11,12 @@ export default function Home() {
   useEffect(() => {
     getTableData().then((data) => setUsers(data))
 
-    setInterval(() => {
-      getTableData().then((data) => setUsers(data));
-    }, 3000);
-  }, [])
+    if (new Date(Date.now()) < new Date('2026-02-01T00:00:00-05:00')) {
+      setInterval(() => {
+        getTableData().then((data) => setUsers(data));
+      }, 3000);
+    }
+  }, []);
 
   return (
     <div className="w-full">
